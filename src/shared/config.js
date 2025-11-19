@@ -1,8 +1,8 @@
 /**
- * Configuration constants
+ * Shared configuration constants
  */
 
-module.exports = {
+export default {
   // Resource limits
   MAX_CPU_TIME_LIMIT: 5.0,
   MAX_CPU_EXTRA_TIME: 2.0,

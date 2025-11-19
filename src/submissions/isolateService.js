@@ -1,14 +1,15 @@
-const { execSync, spawnSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
-const { getStatusByName } = require("../config/statuses");
-const config = require("../config/config");
+import { execSync, spawnSync } from "child_process";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { getStatusByName } from "../statuses/config.js";
+import config from "../shared/config.js";
 
 /**
  * Isolate execution service
  * Handles compilation and execution of code in isolated sandboxes
  */
-class IsolateService {
+export default class IsolateService {
   constructor(submission) {
     this.submission = submission;
     this.boxId = submission.id % 2147483647;
@@ -49,7 +50,6 @@ class IsolateService {
         // Development mode: use temp directory instead of isolate
         console.log(`[DEV MODE] Using temp directory instead of isolate`);
         this.useIsolate = false;
-        const os = require("os");
         const tempDir = path.join(os.tmpdir(), `judge0-${this.boxId}`);
         if (!fs.existsSync(tempDir)) {
           fs.mkdirSync(tempDir, { recursive: true });
@@ -547,9 +547,9 @@ class IsolateService {
     if (!text) return null;
     return text
       .split("\n")
-      .map((line) => line.rtrim())
+      .map((line) => line.trimEnd())
       .join("\n")
-      .rtrim();
+      .trimEnd();
   }
 
   /**
@@ -642,5 +642,3 @@ class IsolateService {
     }
   }
 }
-
-module.exports = IsolateService;

@@ -19,21 +19,16 @@ const statuses = [
   { id: 14, name: "Exec Format Error" },
 ];
 
-function getStatusById(id) {
+export function getStatusById(id) {
   return statuses.find((s) => s.id === parseInt(id));
 }
 
-function getStatusByName(name) {
+export function getStatusByName(name) {
   return statuses.find((s) => s.name === name);
 }
 
-function getAllStatuses() {
+export function getAllStatuses() {
   return statuses;
 }
 
-module.exports = {
-  statuses,
-  getStatusById,
-  getStatusByName,
-  getAllStatuses,
-};
+export { statuses };

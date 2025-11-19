@@ -46,19 +46,15 @@ const languages = [
 /**
  * Get language by ID
  */
-function getLanguageById(id) {
+export function getLanguageById(id) {
   return languages.find((lang) => lang.id === parseInt(id));
 }
 
 /**
  * Get all languages
  */
-function getAllLanguages() {
+export function getAllLanguages() {
   return languages;
 }
 
-module.exports = {
-  languages,
-  getLanguageById,
-  getAllLanguages,
-};
+export { languages };

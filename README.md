@@ -1,18 +1,17 @@
-# Revised Judge0 - Node.js Implementation
+# Revised Judge0 - Bun.js Implementation
 
-A Node.js implementation of Judge0 code execution system supporting Python, Java, C++, C, and JavaScript.
+A Bun.js implementation of Judge0 code execution system supporting Python, Java, C++, C, and JavaScript.
 
 ## Features
 
 - **Multi-language Support**: Python, Java, C++, C, and JavaScript
 - **Isolated Execution**: Uses `isolate` sandbox for secure code execution
 - **Resource Limits**: CPU time, memory, stack, and file size limits
-- **RESTful API**: Simple Express.js API for code submissions
+- **RESTful API**: Simple Bun.js HTTP server API for code submissions
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- npm or yarn
+- Bun.js (latest version)
 - `isolate` sandbox tool installed and configured
 - Required compilers/interpreters:
   - GCC 9.2.0 (for C/C++)
@@ -22,13 +21,19 @@ A Node.js implementation of Judge0 code execution system supporting Python, Java
 
 ## Installation
 
-1. Install dependencies:
+1. Install Bun.js (if not already installed):
 
 ```bash
-npm install
+curl -fsSL https://bun.sh/install | bash
 ```
 
-2. Ensure `isolate` is installed and configured:
+2. Install dependencies:
+
+```bash
+bun install
+```
+
+3. Ensure `isolate` is installed and configured:
 
 ```bash
 # Check if isolate is available
@@ -39,7 +44,7 @@ which isolate
 sudo apt-get install isolate
 ```
 
-3. Configure isolate (if needed):
+4. Configure isolate (if needed):
 
 ```bash
 # Check isolate configuration
@@ -51,13 +56,13 @@ isolate --check
 ### Start the server:
 
 ```bash
-npm start
+bun start
 ```
 
 Or for development with auto-reload:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 The server will start on `http://localhost:3000`
@@ -142,18 +147,19 @@ GET /statuses
 ```
 revised-judge0/
 ├── src/
-│   ├── config/
-│   │   ├── languages.js      # Language configurations
-│   │   ├── statuses.js       # Status definitions
-│   │   └── config.js         # Configuration constants
-│   ├── services/
+│   ├── languages/            # Languages module
+│   │   ├── config.js        # Language configurations
+│   │   └── route.js         # Language endpoints
+│   ├── statuses/            # Statuses module
+│   │   ├── config.js        # Status definitions
+│   │   └── route.js         # Status endpoints
+│   ├── submissions/         # Submissions module
+│   │   ├── service.js       # Submission management
 │   │   ├── isolateService.js # Isolate execution service
-│   │   └── submissionService.js # Submission management
-│   ├── routes/
-│   │   ├── submissions.js    # Submission endpoints
-│   │   ├── languages.js      # Language endpoints
-│   │   └── statuses.js      # Status endpoints
-│   └── server.js             # Express server
+│   │   └── route.js         # Submission endpoints
+│   ├── shared/              # Shared utilities
+│   │   └── config.js        # Shared configuration constants
+│   └── server.js            # Bun.js HTTP server
 ├── package.json
 └── README.md
 ```
@@ -207,4 +213,3 @@ curl -X POST http://localhost:3000/submissions \
 ## License
 
 MIT
-# revised-judge0

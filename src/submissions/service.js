@@ -1,8 +1,8 @@
-const { v4: uuidv4 } = require("uuid");
-const { getLanguageById } = require("../config/languages");
-const { getStatusByName } = require("../config/statuses");
-const config = require("../config/config");
-const IsolateService = require("./isolateService");
+import { v4 as uuidv4 } from "uuid";
+import { getLanguageById } from "../languages/config.js";
+import { getStatusByName } from "../statuses/config.js";
+import config from "../shared/config.js";
+import IsolateService from "./isolateService.js";
 
 /**
  * In-memory storage for submissions (replace with database in production)
@@ -13,7 +13,7 @@ const submissions = new Map();
  * Submission Service
  * Handles submission creation, processing, and retrieval
  */
-class SubmissionService {
+export default class SubmissionService {
   /**
    * Create a new submission
    */
@@ -162,5 +162,3 @@ class SubmissionService {
     return Array.from(submissions.values());
   }
 }
-
-module.exports = SubmissionService;

@@ -1,0 +1,116 @@
+# Compilers base image
+# This image contains compilers, interpreters, and isolate sandbox
+# Supports: C, C++, Java, Python, JavaScript (Node.js), SQL
+FROM ubuntu:22.04
+
+# Avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    unzip \
+    git \
+    build-essential \
+    sudo \
+    cgroup-tools \
+    libcap-dev \
+    locales \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up locale
+RUN set -xe && \
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
+
+# Install GCC (C/C++ compiler)
+# Using system GCC for simplicity, but following Judge0's pattern
+# Check for latest version here: https://gcc.gnu.org/releases.html
+ENV GCC_VERSIONS \
+    9.2.0
+RUN set -xe && \
+    for VERSION in $GCC_VERSIONS; do \
+    curl -fSsL "https://ftpmirror.gnu.org/gcc/gcc-$VERSION/gcc-$VERSION.tar.gz" -o /tmp/gcc-$VERSION.tar.gz && \
+    mkdir /tmp/gcc-$VERSION && \
+    tar -xf /tmp/gcc-$VERSION.tar.gz -C /tmp/gcc-$VERSION --strip-components=1 && \
+    rm /tmp/gcc-$VERSION.tar.gz && \
+    cd /tmp/gcc-$VERSION && \
+    ./contrib/download_prerequisites && \
+    { rm *.tar.* || true; } && \
+    tmpdir="$(mktemp -d)" && \
+    cd "$tmpdir" && \
+    /tmp/gcc-$VERSION/configure \
+    --disable-multilib \
+    --enable-languages=c,c++ \
+    --prefix=/usr/local/gcc-$VERSION && \
+    make -j$(nproc) && \
+    make -j$(nproc) install-strip && \
+    rm -rf /tmp/*; \
+    done
+
+# Install Python
+# Check for latest version here: https://www.python.org/downloads
+ENV PYTHON_VERSIONS \
+    3.8.1
+RUN set -xe && \
+    for VERSION in $PYTHON_VERSIONS; do \
+    curl -fSsL "https://www.python.org/ftp/python/$VERSION/Python-$VERSION.tar.xz" -o /tmp/python-$VERSION.tar.xz && \
+    mkdir /tmp/python-$VERSION && \
+    tar -xf /tmp/python-$VERSION.tar.xz -C /tmp/python-$VERSION --strip-components=1 && \
+    rm /tmp/python-$VERSION.tar.xz && \
+    cd /tmp/python-$VERSION && \
+    ./configure \
+    --prefix=/usr/local/python-$VERSION && \
+    make -j$(nproc) && \
+    make -j$(nproc) install && \
+    rm -rf /tmp/*; \
+    done
+
+# Install OpenJDK (Java)
+# Check for latest version here: https://jdk.java.net
+RUN set -xe && \
+    curl -fSsL "https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_linux-x64_bin.tar.gz" -o /tmp/openjdk13.tar.gz && \
+    mkdir /usr/local/openjdk13 && \
+    tar -xf /tmp/openjdk13.tar.gz -C /usr/local/openjdk13 --strip-components=1 && \
+    rm /tmp/openjdk13.tar.gz && \
+    ln -s /usr/local/openjdk13/bin/javac /usr/local/bin/javac && \
+    ln -s /usr/local/openjdk13/bin/java /usr/local/bin/java && \
+    ln -s /usr/local/openjdk13/bin/jar /usr/local/bin/jar
+
+# Install Node.js (JavaScript)
+# Using NodeSource repository for Node.js LTS
+RUN set -xe && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install SQLite3 (SQL)
+# Check for latest version here: https://packages.debian.org/buster/sqlite3
+RUN set -xe && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends sqlite3 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install isolate (using Judge0's fork and specific commit)
+RUN set -xe && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends git libcap-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    git clone https://github.com/judge0/isolate.git /tmp/isolate && \
+    cd /tmp/isolate && \
+    git checkout ad39cc4d0fbb577fb545910095c9da5ef8fc9a1a && \
+    make -j$(nproc) install && \
+    rm -rf /tmp/*
+
+ENV BOX_ROOT /var/local/lib/isolate
+
+# Configure isolate directory
+RUN mkdir -p /var/local/lib/isolate \
+    && chmod 777 /var/local/lib/isolate
+
+LABEL maintainer="Revised Judge0"
+LABEL description="Base image with C, C++, Java, Python, JavaScript (Node.js), SQL compilers and isolate sandbox"
+LABEL version="1.0.0"
+

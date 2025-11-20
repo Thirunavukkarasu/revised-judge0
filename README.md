@@ -202,6 +202,128 @@ curl -X POST http://localhost:3000/submissions \
   }'
 ```
 
+## Docker
+
+> **Note:** For detailed information about the compilers base image, see [README.compilers.md](./README.compilers.md)
+
+### Architecture
+
+The Docker setup uses a two-image architecture (similar to Judge0):
+
+1. **`revised-judge0-compilers`** - Base image containing:
+
+   - All compilers/interpreters (GCC, Java, Python, Node.js)
+   - Isolate sandbox
+   - System dependencies
+
+2. **`revised-judge0`** - Application image containing:
+   - Bun.js runtime
+   - Application code
+   - Uses compilers image as base
+
+This separation allows for:
+
+- Faster rebuilds (compilers image is cached)
+- Reusable compilers image
+- Better separation of concerns
+
+### Building and Running with Docker
+
+**Option 1: Use the build script (recommended)**
+
+```bash
+./build.sh
+```
+
+This will build both images in the correct order.
+
+**Option 2: Build manually**
+
+1. **Build the compilers base image first:**
+
+```bash
+docker build -f Dockerfile.compilers -t revised-judge0-compilers:latest .
+```
+
+2. **Build the main application image:**
+
+```bash
+docker build -f Dockerfile -t revised-judge0:latest .
+```
+
+3. **Run the container:**
+
+```bash
+docker run -d \
+  --name revised-judge0 \
+  --privileged \
+  --cap-add=SYS_ADMIN \
+  -p 3000:3000 \
+  revised-judge0:latest
+```
+
+4. **Access the API:**
+
+The server will be available at `http://localhost:3000`
+
+### Docker Requirements
+
+- Docker with privileged mode support (required for isolate)
+
+**Note:** The container runs in privileged mode to allow isolate to function properly. This is necessary for cgroups and sandboxing features. In production, consider using more restrictive security settings or running isolate in a separate container.
+
+### Useful Docker Commands
+
+```bash
+# View logs
+docker logs revised-judge0
+
+# Stop the container
+docker stop revised-judge0
+
+# Start the container
+docker start revised-judge0
+
+# Remove the container
+docker rm revised-judge0
+
+# Remove images
+docker rmi revised-judge0:latest
+docker rmi revised-judge0-compilers:latest
+
+# Rebuild only the application (if compilers haven't changed)
+docker build -f Dockerfile -t revised-judge0:latest .
+```
+
+### Testing with Docker
+
+Once the container is running, you can test it:
+
+**Option 1: Use the test script (recommended)**
+
+```bash
+./test-docker.sh
+```
+
+**Option 2: Manual testing**
+
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Create a submission
+curl -X POST http://localhost:3000/submissions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_code": "print(\"Hello from Docker!\")",
+    "language_id": 4,
+    "stdin": ""
+  }'
+
+# Get submission result (replace TOKEN with the token from above)
+curl http://localhost:3000/submissions/TOKEN
+```
+
 ## Notes
 
 - This is a simplified implementation for demonstration purposes
